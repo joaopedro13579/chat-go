@@ -1,0 +1,382 @@
+# TCP Chat Server (Go)
+
+A simple multi-user TCP chat server written in Go, supporting global chat, private conversations, and chat rooms.
+
+## Features
+
+* Multi-client support using goroutines
+* Persistent usernames (reconnect using the same name)
+* Global chat
+* Private messaging between users
+* Chat room creation
+* Add users to chat rooms
+* Switch between conversations
+* List joined chat rooms
+* View current destination
+* Built-in help command
+
+---
+
+## Requirements
+
+* Go 1.20 or newer
+
+---
+
+## Running the Server
+
+Clone the repository and start the server:
+
+```bash
+go run main.go
+```
+
+The server listens on:
+
+```text
+localhost:8080
+```
+
+You should see:
+
+```text
+Chat server running on port 8080
+```
+
+---
+
+## Connecting to the Server
+
+You can use any TCP client.
+
+### Using Telnet
+
+```bash
+telnet localhost 8080
+```
+
+### Using Netcat
+
+```bash
+nc localhost 8080
+```
+
+When connected, enter your username when prompted:
+
+```text
+Enter your name:
+```
+
+Example:
+
+```text
+Alice
+```
+
+You will receive:
+
+```text
+Welcome Alice! Your ID is 1
+Type /help to see available commands.
+```
+
+---
+
+## Commands
+
+### `/help`
+
+Displays all available commands.
+
+Example:
+
+```text
+/help
+```
+
+---
+
+### `/to <username>`
+
+Starts a private conversation with another user.
+
+Example:
+
+```text
+/to Bob
+```
+
+All subsequent messages will be sent to Bob until the destination changes.
+
+---
+
+### `/tochat <chatname>`
+
+Switches your destination to a chat room.
+
+Example:
+
+```text
+/tochat Developers
+```
+
+---
+
+### `/whereami`
+
+Displays your current destination.
+
+Examples:
+
+```text
+You are in the main chat
+```
+
+```text
+You are chatting with Bob (ID: 2)
+```
+
+```text
+You are in chat Developers (ID: 5)
+```
+
+---
+
+### `/createChat <chatname>`
+
+Creates a new chat room and automatically switches you to it.
+
+Example:
+
+```text
+/createChat Developers
+```
+
+Response:
+
+```text
+Chat Developers created with ID 5
+```
+
+---
+
+### `/addToChat <username> <chatname>`
+
+Adds a user to an existing chat room.
+
+Example:
+
+```text
+/addToChat Bob Developers
+```
+
+Response:
+
+```text
+User Bob added to chat Developers
+```
+
+The added user will receive:
+
+```text
+You have been added to chat Developers (ID: 5)
+```
+
+---
+
+### `/listchats`
+
+Lists all chat rooms you belong to.
+
+Example:
+
+```text
+/listchats
+```
+
+Output:
+
+```text
+Chat: Developers (ID: 5)
+Chat: Friends (ID: 7)
+```
+
+---
+
+### `/changeTo <username|chatname>`
+
+Changes your active destination.
+
+Examples:
+
+Switch to a user:
+
+```text
+/changeTo Bob
+```
+
+Switch to a chat room:
+
+```text
+/changeTo Developers
+```
+
+---
+
+## Messaging
+
+Sending a normal message sends it to your current destination.
+
+Example:
+
+```text
+Hello everyone!
+```
+
+If no destination is selected, messages are sent to the global chat.
+
+---
+
+## Chat Behavior
+
+### Global Chat
+
+By default, users communicate through the main chat.
+
+Example:
+
+```text
+[Alice]: Hello!
+```
+
+All connected users receive the message.
+
+---
+
+### Private Conversations
+
+After:
+
+```text
+/to Bob
+```
+
+messages are delivered only to Bob.
+
+---
+
+### Chat Rooms
+
+Users can create rooms and invite others.
+
+Example workflow:
+
+```text
+/createChat Developers
+/addToChat Bob Developers
+/tochat Developers
+```
+
+All members of the room receive future messages sent there.
+
+---
+
+## Architecture
+
+### Main Structures
+
+#### User
+
+Represents a connected user.
+
+Fields include:
+
+* ID
+* Username
+* Network connection
+* Current destination
+* Address
+
+#### Chat
+
+Represents a chat room.
+
+Fields include:
+
+* ID
+* Name
+* Members
+* Message history
+
+#### Message
+
+Represents a message sent through the system.
+
+Fields include:
+
+* Destination chat ID
+* Text content
+
+---
+
+## Concurrency
+
+The server uses:
+
+* Goroutines for handling multiple clients simultaneously.
+* Mutexes to protect shared state.
+
+Shared resources include:
+
+* Connected users
+* Existing chat rooms
+
+---
+
+## Example Session
+
+User 1:
+
+```text
+Alice
+/createChat Developers
+/addToChat Bob Developers
+Hello Bob!
+```
+
+User 2:
+
+```text
+Bob
+/tochat Developers
+Hi Alice!
+```
+
+Output:
+
+```text
+[Alice]: Hello Bob!
+[Bob]: Hi Alice!
+```
+
+---
+
+## Future Improvements
+
+Possible enhancements include:
+
+* Authentication and passwords
+* Chat room ownership and permissions
+* Message persistence using a database
+* Offline message delivery
+* Encrypted communication using TLS
+* Administrative commands
+* Better error handling
+* User lists and presence indicators
+* Migration from slice-based lookups to maps for improved performance
+
+---
+
+## License
+
+This project is provided for educational purposes. Feel free to modify and extend it for your own use.
